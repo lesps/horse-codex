@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { buildLiveSearchUrl, youtubeEmbedUrl } from './stream'
 
 describe('buildLiveSearchUrl', () => {
-  it('includes the encoded breed name, "live", and the live filter param', () => {
+  it('includes the encoded breed name and "live", and omits the live-only filter param', () => {
     const url = buildLiveSearchUrl('Mustang')
     expect(url).toContain(encodeURIComponent('Mustang'))
     expect(url).toContain('live')
-    expect(url).toContain('sp=EgJAAQ%3D%3D')
+    expect(url).not.toContain('sp=EgJAAQ')
   })
 })
 
