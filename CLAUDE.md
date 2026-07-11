@@ -25,10 +25,15 @@ Instead, a **two-tier** approach:
 1. If a breed's data has a verified `liveStreamId` (a YouTube video id we
    confirmed, by hand, to be a real embeddable 24/7 live cam), the app embeds
    it via an `<iframe src="https://www.youtube-nocookie.com/embed/{id}">`.
-2. Otherwise, the breed gets a "Watch live on YouTube" button linking to
-   YouTube's own live-filtered search results
-   (`youtube.com/results?search_query={breed}+horse+live&sp=EgJAAQ%3D%3D`),
-   opened in a new tab. This costs nothing, needs no key, and always works.
+2. Otherwise, the breed gets a "Watch live on YouTube" button linking to a
+   broad, live-biased YouTube search
+   (`youtube.com/results?search_query={breed}+horse+live`), opened in a new
+   tab. It deliberately does not use YouTube's `sp=EgJAAQ%3D%3D` "currently
+   live" filter — that filter is over-constrained and frequently returns zero
+   results for a given breed. Biasing via the "live" search term instead
+   surfaces live streams when they exist and falls back to regular videos
+   when they don't, so the button is never a dead end. This costs nothing,
+   needs no key, and always works.
 
 `liveStreamId` is deliberately sparse: it should only ever be set for a
 stream someone actually watched and confirmed live at the time it was added.
