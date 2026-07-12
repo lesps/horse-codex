@@ -151,8 +151,8 @@ clicks around the paddock, shown off with a celebration overlay
   re-click-to-toggle: the 🧹 Tidy up tool (`TIDY_TOOL`, selectable like an
   item; horse click strips hat+saddle, decoration click picks it up, treat
   click clears it — horses take hit priority) and 📦 Put everything away
-  (`putAwayAll`, clears all equipment/decorations/treats but never
-  un-discovers toys).
+  (`putAwayAll`, clears all equipment/decorations/treats behind a
+  confirmation dialog, but never un-discovers toys).
 - **Treats live in the pure sim** (`sim.ts#tickWorld`): a dropped treat
   attracts horses within `TREAT_ATTRACT_RADIUS`, they walk over and reuse
   the graze pose to munch, and `bites` deplete per eater-second until the

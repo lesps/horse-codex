@@ -14,7 +14,8 @@
 - Everything is removable: re-select an item and click to toggle it off, or
   use the 🧹 Tidy up tool (click a horse to undress it, a decoration to
   pick it up, a treat to clear it) or 📦 Put everything away to reset the
-  paddock in one go — discovered toys are never lost.
+  paddock in one go (behind a confirmation dialog) — discovered toys are
+  never lost.
 - Item art is ASCII pixel data in `src/stable/items.ts` (same
   data-not-assets approach as the breed sprites) and test-guarded.
 - The toy box persists in localStorage — no accounts, no backend; clearing

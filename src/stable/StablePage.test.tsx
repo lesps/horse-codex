@@ -223,7 +223,7 @@ describe('StablePage', () => {
     expect(storedToyBox().decorations).toHaveLength(0)
   })
 
-  it('put everything away clears all equipment and decorations at once', () => {
+  it('put everything away asks for confirmation, then clears equipment and decorations', () => {
     let box = discoveredBox('crown', 'top-hat', 'apple-tree')
     box = {
       ...box,
@@ -240,10 +240,40 @@ describe('StablePage', () => {
     )
     const putAway = screen.getByRole('button', { name: /put everything away/i })
     fireEvent.click(putAway)
+
+    // Nothing cleared yet — a confirmation dialog is showing.
+    expect(screen.getByRole('dialog', { name: /put everything away\?/i })).toBeInTheDocument()
+    expect(storedToyBox().decorations).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: /put it all away/i }))
+    expect(screen.queryByRole('dialog', { name: /put everything away\?/i })).not.toBeInTheDocument()
     expect(storedToyBox().equipped).toEqual({})
     expect(storedToyBox().decorations).toHaveLength(0)
     expect(storedToyBox().discovered).toEqual(['crown', 'top-hat', 'apple-tree'])
     expect(putAway).toBeDisabled()
+  })
+
+  it('cancelling the put-away confirmation keeps everything in place', () => {
+    let box = discoveredBox('crown')
+    box = { ...box, equipped: { shire: { hat: 'crown' } } }
+    render(
+      <StablePage
+        breeds={breeds}
+        onSelectBreed={() => {}}
+        initialToyBox={box}
+        discoveryRng={neverFind}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /put everything away/i }))
+    fireEvent.click(screen.getByRole('button', { name: /keep playing/i }))
+    expect(screen.queryByRole('dialog', { name: /put everything away\?/i })).not.toBeInTheDocument()
+    expect(storedToyBox().equipped.shire.hat).toBe('crown')
+
+    // Escape also cancels.
+    fireEvent.click(screen.getByRole('button', { name: /put everything away/i }))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: /put everything away\?/i })).not.toBeInTheDocument()
+    expect(storedToyBox().equipped.shire.hat).toBe('crown')
   })
 
   it('deselects the active toy on Escape', () => {
