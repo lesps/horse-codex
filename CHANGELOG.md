@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+
+- Added pixel stable view (`#/stable`): an animated pixel-art paddock where
+  all 20 breeds wander, graze, and idle, each with a recognizable
+  palette-swapped coat (Friesian solid black, Akhal-Teke gold, Appaloosa
+  spots, Clydesdale white feathering, piebald Gypsy Vanner, …) and sized by
+  real height in hands — the drafts visibly dwarf the Shetland.
+- Sprites are hand-authored palette-index grids in TypeScript
+  (`src/stable/sprites.ts`), not image assets; per-breed coats live in
+  `src/stable/coats.ts` and are test-guarded against the breed roster.
+- Clicking a horse opens its breed detail modal; hovering (or tapping) shows
+  its name. A "New herd" button reshuffles the paddock. The simulation is
+  pure and deterministic under test, pauses while the tab is hidden, and
+  stays static under `prefers-reduced-motion`.
+
 ## 0.2.0
 
 - Added Live streams page (`#/live`), collecting all live-horse-viewing

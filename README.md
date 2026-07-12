@@ -2,7 +2,9 @@
 
 A browser-only, no-backend web app cataloguing horse breeds with photos, breed
 info, and — where a verified stream exists — an embedded live cam, falling
-back to a YouTube live-search link otherwise.
+back to a YouTube live-search link otherwise. It also ships a pixel-art
+Stable view (`#/stable`) where every breed wanders a paddock at its real
+relative size — click a horse to open its breed detail.
 
 100% client-side: no server, no database, no secret keys. Deployed as static
 files on GitHub Pages.
@@ -67,7 +69,18 @@ one, append an object matching the `LiveCam` interface:
 - Run `pnpm test` after editing — it checks unique kebab-case ids, non-empty
   label/description, an `https://` url, and (if present) a valid `breedId`.
 
+## How to tweak a coat
+
+Each breed's pixel-stable appearance lives in `src/stable/coats.ts`: pick a
+base silhouette (`pony` / `horse` / `draft`) and map the palette slots
+(1 body, 2 mane/tail, 3 marking, 4 outline/hoof) to hex colors; set
+`spots: true` for Appaloosa-style blotches. The silhouettes themselves are
+ASCII grids in `src/stable/sprites.ts` — editing a frame is a data edit.
+Run `pnpm test` after: `src/stable/coats.test.ts` enforces that every breed
+has a coat covering exactly the slots its sprite uses.
+
 ## Architecture
 
 See `CLAUDE.md` for the full architecture rundown, including why there's no
-YouTube Data API integration.
+YouTube Data API integration and how the Stable view's sprites-as-data
+approach works.

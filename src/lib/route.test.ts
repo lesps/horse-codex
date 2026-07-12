@@ -6,6 +6,10 @@ describe('parseHash', () => {
     expect(parseHash('#/live')).toBe('live')
   })
 
+  it('maps "#/stable" to the stable view', () => {
+    expect(parseHash('#/stable')).toBe('stable')
+  })
+
   it('falls back to the breeds view for empty, root, or unrecognized hashes', () => {
     expect(parseHash('')).toBe('breeds')
     expect(parseHash('#/')).toBe('breeds')
