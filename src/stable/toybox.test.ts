@@ -6,14 +6,17 @@ import {
   PITY_LIMIT,
   TOYBOX_STORAGE_KEY,
   addDiscovery,
+  anythingOut,
   emptyToyBox,
   loadToyBox,
   placeDecoration,
+  putAwayAll,
   recordMiss,
   removeDecoration,
   rollDiscovery,
   saveToyBox,
   toggleAccessory,
+  unequipAll,
 } from './toybox'
 
 describe('rollDiscovery', () => {
@@ -70,6 +73,39 @@ describe('toy box state transitions', () => {
     const state = emptyToyBox()
     expect(toggleAccessory(state, 'shire', 'hay-bale')).toBe(state)
     expect(toggleAccessory(state, 'shire', 'nope')).toBe(state)
+  })
+
+  it('unequipAll strips one horse without touching the others', () => {
+    let state = emptyToyBox()
+    state = toggleAccessory(state, 'shire', 'crown')
+    state = toggleAccessory(state, 'shire', 'classic-saddle')
+    state = toggleAccessory(state, 'welsh', 'top-hat')
+
+    state = unequipAll(state, 'shire')
+    expect(state.equipped.shire).toBeUndefined()
+    expect(state.equipped.welsh.hat).toBe('top-hat')
+    expect(unequipAll(state, 'arabian')).toBe(state)
+  })
+
+  it('putAwayAll clears equipment and decorations but keeps discoveries', () => {
+    let state = addDiscovery(emptyToyBox(), 'crown')
+    state = toggleAccessory(state, 'shire', 'crown')
+    state = placeDecoration(state, 'apple-tree', 50, 120)
+    expect(anythingOut(state)).toBe(true)
+
+    state = putAwayAll(state)
+    expect(anythingOut(state)).toBe(false)
+    expect(state.equipped).toEqual({})
+    expect(state.decorations).toEqual([])
+    expect(state.discovered).toEqual(['crown'])
+  })
+
+  it('anythingOut is false for a fresh box and after a toggle-off', () => {
+    let state = emptyToyBox()
+    expect(anythingOut(state)).toBe(false)
+    state = toggleAccessory(state, 'shire', 'crown')
+    state = toggleAccessory(state, 'shire', 'crown')
+    expect(anythingOut(state)).toBe(false)
   })
 
   it('places and removes decorations, capped at the max', () => {

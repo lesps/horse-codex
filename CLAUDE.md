@@ -147,7 +147,12 @@ clicks around the paddock, shown off with a celebration overlay
   opens its breed detail (unchanged). Selecting a toy retargets the next
   paddock click — equip/unequip on a horse (one hat slot + one saddle slot
   per breed), place/pick-up a decoration (capped at `MAX_DECORATIONS`), or
-  drop a treat. Escape deselects.
+  drop a treat. Escape deselects. Removal has two explicit paths on top of
+  re-click-to-toggle: the 🧹 Tidy up tool (`TIDY_TOOL`, selectable like an
+  item; horse click strips hat+saddle, decoration click picks it up, treat
+  click clears it — horses take hit priority) and 📦 Put everything away
+  (`putAwayAll`, clears all equipment/decorations/treats but never
+  un-discovers toys).
 - **Treats live in the pure sim** (`sim.ts#tickWorld`): a dropped treat
   attracts horses within `TREAT_ATTRACT_RADIUS`, they walk over and reuse
   the graze pose to munch, and `bites` deplete per eater-second until the

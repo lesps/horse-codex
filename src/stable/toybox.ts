@@ -24,6 +24,9 @@ export interface ToyBoxState {
 
 export const TOYBOX_STORAGE_KEY = 'horse-codex-toybox-v1'
 
+/** Selection value for the tidy-up tool — not an item id. */
+export const TIDY_TOOL = 'tidy-up'
+
 /** Chance to find something on a paddock click. */
 export const CLICK_FIND_CHANCE = 0.25
 /** Chance to find something just for opening the stable. */
@@ -86,6 +89,27 @@ export function placeDecoration(
 
 export function removeDecoration(state: ToyBoxState, id: string): ToyBoxState {
   return { ...state, decorations: state.decorations.filter((d) => d.id !== id) }
+}
+
+/** Takes the hat and saddle off one horse. */
+export function unequipAll(state: ToyBoxState, breedId: string): ToyBoxState {
+  if (!state.equipped[breedId]) return state
+  const equipped = { ...state.equipped }
+  delete equipped[breedId]
+  return { ...state, equipped }
+}
+
+/** Undresses every horse and picks up every decoration. Toys stay discovered. */
+export function putAwayAll(state: ToyBoxState): ToyBoxState {
+  return { ...state, equipped: {}, decorations: [] }
+}
+
+/** True if any horse is dressed or any decoration is placed. */
+export function anythingOut(state: ToyBoxState): boolean {
+  return (
+    state.decorations.length > 0 ||
+    Object.values(state.equipped).some((slots) => slots.hat || slots.saddle)
+  )
 }
 
 // --- persistence -------------------------------------------------------------

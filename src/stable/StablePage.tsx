@@ -11,6 +11,7 @@ import {
   decorationAt,
   drawScene,
   hitTest,
+  treatAt,
 } from './render'
 import {
   MAX_TREATS,
@@ -24,14 +25,17 @@ import { ToyBox } from './ToyBox'
 import {
   CLICK_FIND_CHANCE,
   OPEN_FIND_CHANCE,
+  TIDY_TOOL,
   addDiscovery,
   loadToyBox,
   placeDecoration,
+  putAwayAll,
   recordMiss,
   removeDecoration,
   rollDiscovery,
   saveToyBox,
   toggleAccessory,
+  unequipAll,
   type ToyBoxState,
 } from './toybox'
 
@@ -52,7 +56,10 @@ function prefersReducedMotion(): boolean {
   )
 }
 
-function selectionHint(item: ToyItem | null): string {
+function selectionHint(item: ToyItem | null, tidying: boolean): string {
+  if (tidying) {
+    return 'Tidying up: click a horse to take off its hat and saddle, a decoration to pick it up, or a treat to clear it.'
+  }
   if (!item) {
     return 'Click a horse to open its breed — and keep clicking around the grass, there are toys hiding out there.'
   }
@@ -221,6 +228,28 @@ export function StablePage({
     const selected = selectedId ? (itemById.get(selectedId) ?? null) : null
     const hit = hitTest(worldRef.current.agents, p.x, p.y)
 
+    if (selectedId === TIDY_TOOL) {
+      if (hit) {
+        setToybox((state) => unequipAll(state, hit.breedId))
+        return
+      }
+      const deco = decorationAt(toybox.decorations, p.x, p.y)
+      if (deco) {
+        setToybox((state) => removeDecoration(state, deco.id))
+        return
+      }
+      const treat = treatAt(worldRef.current.treats, p.x, p.y)
+      if (treat) {
+        worldRef.current = {
+          ...worldRef.current,
+          treats: worldRef.current.treats.filter((t) => t.id !== treat.id),
+        }
+        return
+      }
+      tryDiscover(CLICK_FIND_CHANCE)
+      return
+    }
+
     if (selected?.kind === 'hat' || selected?.kind === 'saddle') {
       if (hit) {
         setToybox((state) => toggleAccessory(state, hit.breedId, selected.id))
@@ -253,6 +282,12 @@ export function StablePage({
     } else {
       tryDiscover(CLICK_FIND_CHANCE)
     }
+  }
+
+  function putAway() {
+    setToybox((state) => putAwayAll(state))
+    worldRef.current = { ...worldRef.current, treats: [] }
+    setSelectedId(null)
   }
 
   function newHerd() {
@@ -295,7 +330,7 @@ export function StablePage({
           className="block aspect-video w-full"
           style={{
             imageRendering: 'pixelated',
-            cursor: hover || selectedItem ? 'pointer' : 'default',
+            cursor: hover || selectedId ? 'pointer' : 'default',
           }}
           onPointerMove={handlePointerMove}
           onPointerLeave={() => setHover(null)}
@@ -312,9 +347,11 @@ export function StablePage({
         {discovery && <DiscoveryCard item={discovery} onClose={() => setDiscovery(null)} />}
       </div>
 
-      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{selectionHint(selectedItem)}</p>
+      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        {selectionHint(selectedItem, selectedId === TIDY_TOOL)}
+      </p>
 
-      <ToyBox state={toybox} selectedId={selectedId} onSelect={setSelectedId} />
+      <ToyBox state={toybox} selectedId={selectedId} onSelect={setSelectedId} onPutAway={putAway} />
     </div>
   )
 }
