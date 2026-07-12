@@ -51,6 +51,35 @@ were checked (as the most plausible candidates) but no confirmed, embeddable
 24/7 live cam could be found for either, so every breed currently uses the
 search-link fallback.
 
+## Navigation: hash routing, not react-router
+
+The app has two views — breeds (`#/` or no hash) and Live (`#/live`) —
+switched via `src/lib/route.ts#parseHash` and a `hashchange` listener in
+`App`. This is deliberately not `react-router`: two views don't justify a
+routing dependency, and hash routing needs no `BASE_URL`/basename handling
+to work under GitHub Pages' subpath deployment, and survives a hard refresh
+on `#/live` without any server-side rewrite rules (there is no server).
+
+## Live cams page
+
+`src/data/cams.ts` is the curation point for third-party live cam links
+shown on the Live page (`src/components/LivePage.tsx`), separate from
+`Breed.liveStreamId`. A `LiveCam` optionally carries a `breedId`, which
+`src/data/cams.test.ts` cross-checks against `src/data/breeds.ts` as a
+referential-integrity guard.
+
+**External cams are never iframed** — they're third-party pages with
+unknown frame policies (and, per the constraints above, this app doesn't
+control what they embed). They render as outbound link cards
+(`target="_blank" rel="noopener noreferrer"`) via `CamCard`. The only true
+embedded player on the Live page is for breeds with a verified
+`liveStreamId`, using the same `youtube-nocookie.com` iframe pattern as the
+breed detail modal.
+
+As with `liveStreamId`, cam liveness is unverifiable client-side — a listed
+cam can go offline at any time with no way for the app to detect it. The
+Live page says so explicitly instead of showing a fake "LIVE" indicator.
+
 ## Images
 
 Breed photos are referenced by Wikimedia Commons filename, turned into a URL

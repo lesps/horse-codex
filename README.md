@@ -53,6 +53,20 @@ interface:
   shape (unique kebab-case ids, non-empty required fields, valid categories,
   a sane height range, and a well-formed `liveStreamId` if present).
 
+## How to add a live cam
+
+Curated live cams for the `#/live` page live in `src/data/cams.ts`. To add
+one, append an object matching the `LiveCam` interface:
+
+- `url` should be the cam's own page (`https://...`). It's always rendered
+  as an outbound link, never embedded in an iframe — third-party pages have
+  unknown frame policies.
+- `breedId`, if set, must match an existing id in `src/data/breeds.ts`; the
+  Live page uses it to show a "View breed" link, and the referential-integrity
+  test in `src/data/cams.test.ts` enforces the match.
+- Run `pnpm test` after editing — it checks unique kebab-case ids, non-empty
+  label/description, an `https://` url, and (if present) a valid `breedId`.
+
 ## Architecture
 
 See `CLAUDE.md` for the full architecture rundown, including why there's no
