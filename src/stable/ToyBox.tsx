@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { artSize, items, type ItemKind, type ToyItem } from './items'
 import { drawPixelArt } from './render'
-import type { ToyBoxState } from './toybox'
+import { TIDY_TOOL, anythingOut, type ToyBoxState } from './toybox'
 
 /** Crisp canvas rendering of an item's pixel art at an integer zoom. */
 export function PixelIcon({ item, zoom = 3 }: { item: ToyItem; zoom?: number }) {
@@ -39,22 +39,48 @@ export function ToyBox({
   state,
   selectedId,
   onSelect,
+  onPutAway,
 }: {
   state: ToyBoxState
   selectedId: string | null
   onSelect: (itemId: string | null) => void
+  onPutAway: () => void
 }) {
+  const tidying = selectedId === TIDY_TOOL
   return (
     <section className="mt-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">🧸 Toy box</h3>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {state.discovered.length} of {items.length} toys discovered
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-sm text-gray-500 dark:text-gray-400">
+            {state.discovered.length} of {items.length} toys discovered
+          </span>
+          <button
+            type="button"
+            onClick={() => onSelect(tidying ? null : TIDY_TOOL)}
+            aria-pressed={tidying}
+            className={
+              tidying
+                ? 'rounded-lg border-2 border-red-500 bg-red-50 px-3 py-1 text-sm font-medium text-red-700 dark:bg-red-950 dark:text-red-300'
+                : 'rounded-lg border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800'
+            }
+          >
+            🧹 Tidy up
+          </button>
+          <button
+            type="button"
+            onClick={onPutAway}
+            disabled={!anythingOut(state)}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            📦 Put everything away
+          </button>
+        </div>
       </div>
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
         New toys turn up at random while you click around the paddock. Pick a toy, then click a
-        horse (hats &amp; saddles) or a spot in the grass (decorations &amp; treats).
+        horse (hats &amp; saddles) or a spot in the grass (decorations &amp; treats). Use 🧹 Tidy up
+        to take things off one at a time.
       </p>
 
       {SECTIONS.map((section) => (

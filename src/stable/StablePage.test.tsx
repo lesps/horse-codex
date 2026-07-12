@@ -195,6 +195,57 @@ describe('StablePage', () => {
     expect(onSelectBreed).not.toHaveBeenCalled()
   })
 
+  it('tidy up strips a clicked horse and picks up a clicked decoration', () => {
+    const onSelectBreed = vi.fn()
+    let box = discoveredBox('crown', 'classic-saddle', 'apple-tree')
+    box = {
+      ...box,
+      equipped: { shire: { hat: 'crown', saddle: 'classic-saddle' } },
+      decorations: [{ id: 'd1', itemId: 'apple-tree', x: 250, y: 140 }],
+    }
+    render(
+      <StablePage
+        breeds={breeds}
+        onSelectBreed={onSelectBreed}
+        initialAgents={[agentAt('shire', 100, 120, 1.45)]}
+        initialToyBox={box}
+        discoveryRng={neverFind}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /tidy up/i }))
+    const canvas = paddockCanvas()
+
+    fireEvent.click(canvas, { clientX: 100, clientY: 112 })
+    expect(onSelectBreed).not.toHaveBeenCalled()
+    expect(storedToyBox().equipped.shire).toBeUndefined()
+
+    fireEvent.click(canvas, { clientX: 250, clientY: 138 })
+    expect(storedToyBox().decorations).toHaveLength(0)
+  })
+
+  it('put everything away clears all equipment and decorations at once', () => {
+    let box = discoveredBox('crown', 'top-hat', 'apple-tree')
+    box = {
+      ...box,
+      equipped: { shire: { hat: 'crown' }, welsh: { hat: 'top-hat' } },
+      decorations: [{ id: 'd1', itemId: 'apple-tree', x: 250, y: 140 }],
+    }
+    render(
+      <StablePage
+        breeds={breeds}
+        onSelectBreed={() => {}}
+        initialToyBox={box}
+        discoveryRng={neverFind}
+      />,
+    )
+    const putAway = screen.getByRole('button', { name: /put everything away/i })
+    fireEvent.click(putAway)
+    expect(storedToyBox().equipped).toEqual({})
+    expect(storedToyBox().decorations).toHaveLength(0)
+    expect(storedToyBox().discovered).toEqual(['crown', 'top-hat', 'apple-tree'])
+    expect(putAway).toBeDisabled()
+  })
+
   it('deselects the active toy on Escape', () => {
     render(
       <StablePage

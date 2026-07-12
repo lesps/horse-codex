@@ -257,6 +257,19 @@ export function decorationAt(
   return null
 }
 
+/** Topmost dropped treat under the point, or null. Uses the full-size art rect. */
+export function treatAt(treats: Treat[], x: number, y: number): Treat | null {
+  for (let i = treats.length - 1; i >= 0; i--) {
+    const item = itemById.get(treats[i].itemId)
+    if (!item) continue
+    const { w, h } = artSize(item)
+    const rx = treats[i].x - item.anchor.x
+    const ry = treats[i].y - item.anchor.y
+    if (x >= rx && x <= rx + w && y >= ry && y <= ry + h) return treats[i]
+  }
+  return null
+}
+
 function drawAccessory(
   ctx: CanvasRenderingContext2D,
   itemId: string | undefined,
