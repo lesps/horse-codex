@@ -23,6 +23,12 @@ describe('StreamSection', () => {
     expect(iframe?.getAttribute('src')).toContain('abc12345678')
   })
 
+  it('renders a search link alongside the embed in case the stream is offline', () => {
+    render(<StreamSection breed={{ ...baseBreed, liveStreamId: 'abc12345678' }} />)
+    const link = screen.getByRole('link', { name: /search live cams on youtube/i })
+    expect(link).toHaveAttribute('href', expect.stringContaining('youtube.com/results'))
+  })
+
   it('renders a link to the live-search URL and no iframe when liveStreamId is absent', () => {
     render(<StreamSection breed={baseBreed} />)
     expect(document.querySelector('iframe')).toBeNull()
