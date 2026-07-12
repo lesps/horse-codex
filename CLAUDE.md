@@ -33,7 +33,16 @@ Instead, a **two-tier** approach:
    results for a given breed. Biasing via the "live" search term instead
    surfaces live streams when they exist and falls back to regular videos
    when they don't, so the button is never a dead end. This costs nothing,
-   needs no key, and always works.
+   needs no key, and always works. The breed's display name is sanitized
+   before it becomes a query — parenthetical qualifiers and punctuation like
+   `&` are stripped ("Andalusian (PRE)" searches as "Andalusian",
+   "Welsh Pony & Cob" as "Welsh Pony Cob") because YouTube treats them as
+   noise terms that degrade results — and "horse" is only appended when the
+   name doesn't already contain an equine word (horse/pony/cob).
+
+Tier-1 embeds also render the tier-2 search link underneath the iframe: a
+cam can go offline at any time with no client-side way to detect it, so the
+link keeps a dead embed from being a dead end.
 
 `liveStreamId` is deliberately sparse: it should only ever be set for a
 stream someone actually watched and confirmed live at the time it was added.
@@ -74,8 +83,9 @@ stopping the data file from silently rotting.
 - **Stream coverage is sparse by design.** Most breeds only get the
   search-link fallback. An embedded cam can go offline at any time; the app
   has no way to detect that client-side, so a stale `liveStreamId` will show
-  YouTube's own "stream offline" state inside the iframe. When in doubt,
-  prefer leaving `liveStreamId` unset.
+  YouTube's own "stream offline" state inside the iframe (with the search
+  link below it as an escape hatch). When in doubt, prefer leaving
+  `liveStreamId` unset.
 - **No YouTube Data API** — deliberate, to keep the app keyless and
   backend-free (see above).
 
