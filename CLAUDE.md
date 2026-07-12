@@ -53,12 +53,13 @@ search-link fallback.
 
 ## Navigation: hash routing, not react-router
 
-The app has two views — breeds (`#/` or no hash) and Live (`#/live`) —
-switched via `src/lib/route.ts#parseHash` and a `hashchange` listener in
-`App`. This is deliberately not `react-router`: two views don't justify a
-routing dependency, and hash routing needs no `BASE_URL`/basename handling
-to work under GitHub Pages' subpath deployment, and survives a hard refresh
-on `#/live` without any server-side rewrite rules (there is no server).
+The app has three views — breeds (`#/` or no hash), Live (`#/live`), and
+Stable (`#/stable`) — switched via `src/lib/route.ts#parseHash` and a
+`hashchange` listener in `App`. This is deliberately not `react-router`:
+three views don't justify a routing dependency, and hash routing needs no
+`BASE_URL`/basename handling to work under GitHub Pages' subpath deployment,
+and survives a hard refresh on `#/live` or `#/stable` without any
+server-side rewrite rules (there is no server).
 
 ## Live cams page
 
@@ -79,6 +80,44 @@ breed detail modal.
 As with `liveStreamId`, cam liveness is unverifiable client-side — a listed
 cam can go offline at any time with no way for the app to detect it. The
 Live page says so explicitly instead of showing a fake "LIVE" indicator.
+
+## Stable view: sprites are data, not assets
+
+`#/stable` (`src/stable/`) is a pixel-art paddock where every breed wanders,
+grazes, and idles on one low-resolution canvas (320×180 logical pixels,
+scaled up with `image-rendering: pixelated`, nearest-neighbor only).
+
+- **Sprites are 2D palette-index arrays, not image files.** The three base
+  silhouettes (`pony` 20×14, `horse` 24×16, `draft` 28×18) live in
+  `src/stable/sprites.ts` as ASCII grids parsed at module load. There is no
+  asset pipeline; the art stays diffable, palette-swappable, and
+  test-guarded. **Sprite polish is a data edit**, not a code change: tweak
+  the ASCII rows, look at the result, commit.
+- **Palette slots are semantic:** `0` transparent, `1` body, `2` mane/tail,
+  `3` marking (blaze, feathering, spots), `4` outline/hoof.
+  `src/stable/coats.ts` maps each breed id to a sprite key plus a slot→hex
+  palette; a coat that wants no marking maps slot 3 back to its body color
+  (Friesian), and the draft sheet's hoof feathering uses slot 3 so it renders
+  white on Clydesdale/Shire but body-colored on Percheron. `spots: true`
+  adds a deterministic (breed-id-seeded) blotch mask over body pixels —
+  Appaloosa blanket, Gypsy Vanner/Chincoteague pinto patches.
+- **Size is the punchline.** `src/stable/scale.ts#scaleFor` maps mean height
+  in hands to a draw scale — 9hh → 0.65×, 17.5hh → 1.5×, linear, clamped —
+  applied on top of the base silhouette's size, so a Shire lands at roughly
+  2.5× the on-screen area of a Shetland. Keep that invariant when tuning:
+  drafts must visibly dwarf ponies at a glance.
+- **Simulation is pure** (`src/stable/sim.ts`): no canvas, no DOM, no
+  `Math.random` — randomness is an injected rng, so tests run it
+  deterministically. Rendering (`src/stable/render.ts`) degrades gracefully
+  where no 2D context exists (jsdom). Agents are y-sorted at draw time so
+  nearer horses occlude farther ones; walk speed and frame cadence scale
+  with size so drafts amble and ponies scurry.
+- **Spawn count:** all 20 breeds spawn at once — at 320×180 the herd is
+  cozy but readable, and it keeps "every breed, one paddock" true. A
+  "New herd" button reshuffles positions. If the roster grows much past 20,
+  switch to a random subset per shuffle instead.
+- The view skips simulation under `prefers-reduced-motion` (static herd,
+  still clickable) and stops advancing while the tab is hidden.
 
 ## Images
 

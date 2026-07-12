@@ -5,7 +5,10 @@ import { Filters } from './components/Filters'
 import { BreedGrid } from './components/BreedGrid'
 import { BreedDetail } from './components/BreedDetail'
 import { LivePage } from './components/LivePage'
+import { StablePage } from './stable/StablePage'
 import { parseHash, type View } from './lib/route'
+
+const VIEW_HREF: Record<View, string> = { breeds: '#/', live: '#/live', stable: '#/stable' }
 
 function NavLink({ view, current, onNavigate, children }: {
   view: View
@@ -16,7 +19,7 @@ function NavLink({ view, current, onNavigate, children }: {
   const isActive = view === current
   return (
     <a
-      href={view === 'live' ? '#/live' : '#/'}
+      href={VIEW_HREF[view]}
       onClick={() => onNavigate(view)}
       aria-current={isActive ? 'page' : undefined}
       className={
@@ -67,12 +70,17 @@ function App() {
             <NavLink view="live" current={view} onNavigate={setView}>
               Live
             </NavLink>
+            <NavLink view="stable" current={view} onNavigate={setView}>
+              Stable
+            </NavLink>
           </nav>
         </div>
       </header>
 
       {view === 'live' ? (
         <LivePage breeds={breeds} onSelectBreed={setSelectedBreed} />
+      ) : view === 'stable' ? (
+        <StablePage breeds={breeds} onSelectBreed={setSelectedBreed} />
       ) : (
         <main className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-6">

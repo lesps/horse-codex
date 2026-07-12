@@ -1,5 +1,7 @@
-export type View = 'breeds' | 'live'
+export type View = 'breeds' | 'live' | 'stable'
 
 export function parseHash(hash: string): View {
-  return hash === '#/live' ? 'live' : 'breeds'
+  if (hash === '#/live') return 'live'
+  if (hash === '#/stable') return 'stable'
+  return 'breeds'
 }
