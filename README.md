@@ -2,9 +2,10 @@
 
 A browser-only, no-backend web app cataloguing horse breeds with photos, breed
 info, and — where a verified stream exists — an embedded live cam, falling
-back to a YouTube live-search link otherwise. It also ships a pixel-art
-Stable view (`#/stable`) where every breed wanders a paddock at its real
-relative size — click a horse to open its breed detail.
+back to a YouTube live-search link otherwise. It opens on a pixel-art
+Stable view — the default tab — where every breed wanders a paddock at its
+real relative size; click a horse to open its breed detail. The breed
+catalogue lives at `#/breeds`.
 
 100% client-side: no server, no database, no secret keys. Deployed as static
 files on GitHub Pages.

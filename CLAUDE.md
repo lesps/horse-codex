@@ -53,13 +53,15 @@ search-link fallback.
 
 ## Navigation: hash routing, not react-router
 
-The app has three views — breeds (`#/` or no hash), Live (`#/live`), and
-Stable (`#/stable`) — switched via `src/lib/route.ts#parseHash` and a
-`hashchange` listener in `App`. This is deliberately not `react-router`:
-three views don't justify a routing dependency, and hash routing needs no
-`BASE_URL`/basename handling to work under GitHub Pages' subpath deployment,
-and survives a hard refresh on `#/live` or `#/stable` without any
-server-side rewrite rules (there is no server).
+The app has three views — Stable (`#/`, no hash, or any unrecognized hash;
+it's the default view), breeds (`#/breeds`), and Live (`#/live`) — switched
+via `src/lib/route.ts#parseHash` and a `hashchange` listener in `App`.
+`#/stable` also resolves to the stable via the fallback, so older deep links
+keep working. This is deliberately not `react-router`: three views don't
+justify a routing dependency, and hash routing needs no `BASE_URL`/basename
+handling to work under GitHub Pages' subpath deployment, and survives a hard
+refresh on any view's hash without server-side rewrite rules (there is no
+server).
 
 ## Live cams page
 
@@ -83,7 +85,7 @@ Live page says so explicitly instead of showing a fake "LIVE" indicator.
 
 ## Stable view: sprites are data, not assets
 
-`#/stable` (`src/stable/`) is a pixel-art paddock where every breed wanders,
+The stable (`src/stable/`, the default view) is a pixel-art paddock where every breed wanders,
 grazes, and idles on one low-resolution canvas (320×180 logical pixels,
 scaled up with `image-rendering: pixelated`, nearest-neighbor only).
 
