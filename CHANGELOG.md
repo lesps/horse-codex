@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0
+
+- Added the toy box: 20 discoverable toys (7 hats, 4 saddles, 5 paddock
+  decorations, 4 treats) that turn up at random while clicking around the
+  stable, each revealed with a sparkly discovery animation. The first find
+  is always the hay bale.
+- Hats and saddles can be equipped on any horse (they follow the horse,
+  flip with its facing, scale with its size, and track a grazing head);
+  decorations can be placed and picked back up anywhere in the paddock;
+  treats (hay bale, carrots, apples, sugar cubes) can be dropped for the
+  herd — nearby horses wander over and munch until the treat shrinks away.
+- Item art is ASCII pixel data in `src/stable/items.ts` (same
+  data-not-assets approach as the breed sprites) and test-guarded.
+- The toy box persists in localStorage — no accounts, no backend; clearing
+  site data simply makes the toys re-discoverable.
+
 ## 0.3.0
 
 - The stable is now the app's default view: `#/` (and any unrecognized

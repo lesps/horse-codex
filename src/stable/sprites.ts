@@ -266,3 +266,18 @@ const draft: SpriteSheet = {
 }
 
 export const sprites: Record<SpriteKey, SpriteSheet> = { pony, horse, draft }
+
+// Accessory attach points, in sheet pixel coordinates (facing right).
+// `hatUp` is the top of the skull in walk/idle frames, `hatDown` the same
+// spot in the head-down graze frame, `saddle` the middle of the back.
+export interface AttachPoints {
+  hatUp: { x: number; y: number }
+  hatDown: { x: number; y: number }
+  saddle: { x: number; y: number }
+}
+
+export const attachPoints: Record<SpriteKey, AttachPoints> = {
+  pony: { hatUp: { x: 16, y: 0 }, hatDown: { x: 17, y: 8 }, saddle: { x: 9, y: 5 } },
+  horse: { hatUp: { x: 19, y: 0 }, hatDown: { x: 19, y: 10 }, saddle: { x: 11, y: 6 } },
+  draft: { hatUp: { x: 23, y: 0 }, hatDown: { x: 24, y: 11 }, saddle: { x: 12, y: 6 } },
+}

@@ -1,15 +1,39 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Breed } from '../data/types'
+import { DiscoveryCard } from './DiscoveryCard'
+import { itemById, type ToyItem } from './items'
 import {
   LOGICAL_H,
   LOGICAL_W,
   PADDOCK_TOP,
   buildBackground,
   buildCoatFrames,
+  decorationAt,
   drawScene,
   hitTest,
 } from './render'
-import { spawn, tick, type Bounds, type HorseAgent } from './sim'
+import {
+  MAX_TREATS,
+  spawn,
+  tickWorld,
+  type Bounds,
+  type HorseAgent,
+  type World,
+} from './sim'
+import { ToyBox } from './ToyBox'
+import {
+  CLICK_FIND_CHANCE,
+  OPEN_FIND_CHANCE,
+  addDiscovery,
+  loadToyBox,
+  placeDecoration,
+  recordMiss,
+  removeDecoration,
+  rollDiscovery,
+  saveToyBox,
+  toggleAccessory,
+  type ToyBoxState,
+} from './toybox'
 
 // Side inset covers half the widest scaled sprite (draft 28px * 1.5 / 2) so
 // no horse ever spawns or walks half off-screen.
@@ -28,24 +52,87 @@ function prefersReducedMotion(): boolean {
   )
 }
 
+function selectionHint(item: ToyItem | null): string {
+  if (!item) {
+    return 'Click a horse to open its breed — and keep clicking around the grass, there are toys hiding out there.'
+  }
+  switch (item.kind) {
+    case 'hat':
+    case 'saddle':
+      return `Click a horse to put on the ${item.name} — click a horse already wearing it to take it off.`
+    case 'decoration':
+      return `Click the paddock to place the ${item.name} — click a placed decoration to pick it back up.`
+    case 'treat':
+      return `Click the paddock to drop the ${item.name} — nearby horses will wander over for a snack.`
+  }
+}
+
 export function StablePage({
   breeds,
   onSelectBreed,
   initialAgents,
+  initialToyBox,
+  discoveryRng = Math.random,
 }: {
   breeds: Breed[]
   onSelectBreed: (breed: Breed) => void
   /** Test hook: start from known agent positions instead of a random spawn. */
   initialAgents?: HorseAgent[]
+  /** Test hook: start from a known toy box instead of localStorage. */
+  initialToyBox?: ToyBoxState
+  /** Test hook: rng driving discovery rolls. */
+  discoveryRng?: () => number
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const agentsRef = useRef<HorseAgent[]>(initialAgents ?? spawn(breeds, BOUNDS, Math.random))
+  const worldRef = useRef<World>({
+    agents: initialAgents ?? spawn(breeds, BOUNDS, Math.random),
+    treats: [],
+  })
+  const treatSeq = useRef(0)
+  const rolledOnOpen = useRef(false)
+  const [toybox, setToybox] = useState<ToyBoxState>(() => initialToyBox ?? loadToyBox())
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [discovery, setDiscovery] = useState<ToyItem | null>(null)
   const [hover, setHover] = useState<{ name: string; x: number; y: number } | null>(null)
   const breedById = useRef(new Map(breeds.map((b) => [b.id, b])))
+  // RAF-visible mirror of the persisted toy box (equipped + decorations).
+  const sceneStateRef = useRef(toybox)
 
   useEffect(() => {
     breedById.current = new Map(breeds.map((b) => [b.id, b]))
   }, [breeds])
+
+  useEffect(() => {
+    sceneStateRef.current = toybox
+    saveToyBox(toybox)
+  }, [toybox])
+
+  function tryDiscover(chance: number) {
+    const state = sceneStateRef.current
+    const found = rollDiscovery(state, discoveryRng, chance)
+    if (found) {
+      setDiscovery(found)
+      setToybox(addDiscovery(state, found.id))
+    } else {
+      setToybox(recordMiss(state))
+    }
+  }
+
+  // One roll per stable visit, so opening the app can turn up a toy.
+  useEffect(() => {
+    if (rolledOnOpen.current) return
+    rolledOnOpen.current = true
+    tryDiscover(OPEN_FIND_CHANCE)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSelectedId(null)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -63,9 +150,16 @@ export function StablePage({
       last = now
       if (document.visibilityState !== 'visible') return
       if (!reduced) {
-        agentsRef.current = tick(agentsRef.current, dt, BOUNDS, Math.random)
+        worldRef.current = tickWorld(worldRef.current, dt, BOUNDS, Math.random)
       }
-      if (ctx && coatFrames) drawScene(ctx, background, coatFrames, agentsRef.current)
+      if (ctx && coatFrames) {
+        drawScene(ctx, background, coatFrames, {
+          agents: worldRef.current.agents,
+          treats: worldRef.current.treats,
+          decorations: sceneStateRef.current.decorations,
+          equipped: sceneStateRef.current.equipped,
+        })
+      }
     }
     raf = requestAnimationFrame(loop)
 
@@ -92,7 +186,7 @@ export function StablePage({
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
     const p = logicalPoint(e)
-    const hit = p && hitTest(agentsRef.current, p.x, p.y)
+    const hit = p && hitTest(worldRef.current.agents, p.x, p.y)
     if (hit) {
       const canvas = canvasRef.current!
       const rect = canvas.getBoundingClientRect()
@@ -106,18 +200,71 @@ export function StablePage({
     }
   }
 
+  function dropTreat(item: ToyItem, x: number, y: number) {
+    const treats = worldRef.current.treats
+    if (treats.length >= MAX_TREATS) return
+    const bottom = BOUNDS.bottomInset ?? BOUNDS.inset
+    const treat = {
+      id: `treat-${treatSeq.current++}`,
+      itemId: item.id,
+      x: Math.min(BOUNDS.width - BOUNDS.inset, Math.max(BOUNDS.inset, x)),
+      y: Math.min(BOUNDS.height - bottom, Math.max(BOUNDS.top, y)),
+      bites: item.feedSeconds ?? 5,
+      maxBites: item.feedSeconds ?? 5,
+    }
+    worldRef.current = { ...worldRef.current, treats: [...treats, treat] }
+  }
+
   function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
     const p = logicalPoint(e)
-    const hit = p && hitTest(agentsRef.current, p.x, p.y)
-    if (!hit) return
-    const breed = breedById.current.get(hit.breedId)
-    if (breed) onSelectBreed(breed)
+    if (!p) return
+    const selected = selectedId ? (itemById.get(selectedId) ?? null) : null
+    const hit = hitTest(worldRef.current.agents, p.x, p.y)
+
+    if (selected?.kind === 'hat' || selected?.kind === 'saddle') {
+      if (hit) {
+        setToybox((state) => toggleAccessory(state, hit.breedId, selected.id))
+      } else {
+        tryDiscover(CLICK_FIND_CHANCE)
+      }
+      return
+    }
+
+    if (selected?.kind === 'decoration') {
+      const existing = decorationAt(toybox.decorations, p.x, p.y)
+      if (existing) {
+        setToybox((state) => removeDecoration(state, existing.id))
+      } else {
+        const x = Math.min(LOGICAL_W - 8, Math.max(8, p.x))
+        const y = Math.min(LOGICAL_H - 4, Math.max(64, p.y))
+        setToybox((state) => placeDecoration(state, selected.id, x, y))
+      }
+      return
+    }
+
+    if (selected?.kind === 'treat') {
+      dropTreat(selected, p.x, p.y)
+      return
+    }
+
+    if (hit) {
+      const breed = breedById.current.get(hit.breedId)
+      if (breed) onSelectBreed(breed)
+    } else {
+      tryDiscover(CLICK_FIND_CHANCE)
+    }
   }
 
   function newHerd() {
-    agentsRef.current = spawn(breeds, BOUNDS, Math.random)
+    worldRef.current = {
+      agents: spawn(breeds, BOUNDS, Math.random),
+      treats: worldRef.current.treats,
+    }
     setHover(null)
+    tryDiscover(CLICK_FIND_CHANCE)
   }
+
+  const selectedItem = selectedId ? (itemById.get(selectedId) ?? null) : null
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -146,12 +293,15 @@ export function StablePage({
           role="img"
           aria-label="Pixel-art paddock where every horse breed wanders, grazes, and idles at its real relative size"
           className="block aspect-video w-full"
-          style={{ imageRendering: 'pixelated', cursor: hover ? 'pointer' : 'default' }}
+          style={{
+            imageRendering: 'pixelated',
+            cursor: hover || selectedItem ? 'pointer' : 'default',
+          }}
           onPointerMove={handlePointerMove}
           onPointerLeave={() => setHover(null)}
           onClick={handleClick}
         />
-        {hover && (
+        {hover && !discovery && (
           <div
             className="pointer-events-none absolute z-10 -translate-x-1/2 rounded bg-gray-900/85 px-2 py-0.5 text-xs font-medium text-white"
             style={{ left: hover.x, top: Math.max(0, hover.y - 26) }}
@@ -159,12 +309,12 @@ export function StablePage({
             {hover.name}
           </div>
         )}
+        {discovery && <DiscoveryCard item={discovery} onClose={() => setDiscovery(null)} />}
       </div>
 
-      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-        {breeds.length} breeds are out grazing. Sprites are palette-swapped pixel art — spot the
-        Appaloosa by its blanket and the Clydesdale by its white feathering.
-      </p>
+      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{selectionHint(selectedItem)}</p>
+
+      <ToyBox state={toybox} selectedId={selectedId} onSelect={setSelectedId} />
     </div>
   )
 }
