@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0
+
+- Added Live streams page (`#/live`), collecting all live-horse-viewing
+  options in one place: embedded 24/7 cams for breeds with a verified
+  `liveStreamId`, curated outbound cam links (`src/data/cams.ts`) seeded
+  with the NCPA Pony Barn Cam, Explore.org's Kentucky Horse Cam, and the
+  Explore.org live-animal-cams directory, and a per-breed YouTube
+  live-search link list.
+- Added lightweight hash-based routing (`#/` and `#/live`) with a header
+  nav — no react-router, since GitHub Pages' subpath deployment and a
+  refresh on `#/live` both "just work" under hash routing with no extra
+  configuration.
+
 ## 0.1.0 — Initial release
 
 - Seed catalogue of 20 horse breeds, each with origin, category, height
