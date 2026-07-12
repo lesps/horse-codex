@@ -11,7 +11,11 @@ export const breeds: Breed[] = [
     description:
       'One of the oldest recognized breeds, the Arabian was shaped by Bedouin tribes for endurance across desert terrain. Its dished profile, high tail carriage, and dense bone are hallmarks passed into most modern light-horse breeds. Arabians remain dominant in endurance riding thanks to exceptional stamina and heat tolerance.',
     uses: ['Endurance', 'Dressage', 'Show', 'Pleasure riding'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Arabian_costume.JPG',
+      credit: 'Cgoodwin / Wikimedia Commons',
+      license: 'CC BY-SA 3.0',
+    },
   },
   {
     id: 'thoroughbred',
@@ -25,7 +29,7 @@ export const breeds: Breed[] = [
     uses: ['Racing', 'Eventing', 'Show jumping', 'Polo'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Chestnut_Thoroughbred_Horse_(3433223374).jpg',
-      credit: 'Rennett Stowe',
+      credit: 'Rennett Stowe / Wikimedia Commons',
       license: 'CC BY 2.0',
     },
   },
@@ -39,7 +43,11 @@ export const breeds: Breed[] = [
     description:
       'Named for its explosive speed over a quarter mile, this breed became the workhorse of American ranching thanks to its muscular build and natural "cow sense." It is the most populous breed in the world today, equally at home on a cattle ranch or in a show ring.',
     uses: ['Ranch work', 'Reining', 'Barrel racing', 'Trail riding'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Palomino_Quarter_Horse_Stallion.jpg',
+      credit: 'Wikimedia Commons (verify author on file page)',
+      license: 'CC BY 2.0',
+    },
   },
   {
     id: 'appaloosa',
@@ -52,9 +60,9 @@ export const breeds: Breed[] = [
       'Bred selectively by the Nez Perce people of the Pacific Northwest, the Appaloosa is best known for its distinctive spotted coat patterns, mottled skin, and striped hooves. Versatile and sure-footed, it excels equally at ranch work and in the show ring.',
     uses: ['Trail riding', 'Ranch work', 'Western show'],
     image: {
-      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Appaloosa_horse.JPG',
-      credit: 'Seerig',
-      license: 'CC BY-SA 3.0',
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Appaloosa_stallion.JPG',
+      credit: 'Karakal / Wikimedia Commons',
+      license: 'CC BY-SA 2.5',
     },
   },
   {
@@ -67,7 +75,11 @@ export const breeds: Breed[] = [
     description:
       'Instantly recognizable for its jet-black coat, thick flowing mane and tail, and high-stepping gait, the Friesian traces back centuries in the northern Netherlands. Once used as a war and carriage horse, it is now prized for dressage and driving.',
     uses: ['Dressage', 'Driving', 'Film and pageantry'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Frisian_horse.jpg',
+      credit: 'Wikimedia Commons (verify author on file page)',
+      license: 'CC BY-SA 3.0',
+    },
   },
   {
     id: 'andalusian',
@@ -79,7 +91,12 @@ export const breeds: Breed[] = [
     description:
       'The Pura Raza Española carries centuries of Iberian breeding behind its compact, powerful frame and elevated, elastic movement. Historically a favorite of European royalty for parade and war, it remains a classical dressage and bullfighting mount today.',
     uses: ['Dressage', 'Classical riding', 'Driving'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    // ⚠ license unconfirmed — verify on file page before shipping
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Andalusian_horse.jpg',
+      credit: 'Wikimedia Commons (verify author + license)',
+      license: 'CC BY-SA 3.0',
+    },
   },
   {
     id: 'lipizzaner',
@@ -92,8 +109,8 @@ export const breeds: Breed[] = [
       'Bred since the 16th century for the Habsburg royal courts, the Lipizzaner is famous as the breed of the Spanish Riding School in Vienna, performing classical "airs above the ground." Foals are typically born dark and gray out to their signature white coat over several years.',
     uses: ['Classical dressage', 'Driving'],
     image: {
-      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Lipicanec.JPG',
-      credit: 'Rude',
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Alter_Lipizzaner_in_Rente.JPG',
+      credit: 'Sarras / Wikimedia Commons',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -107,7 +124,11 @@ export const breeds: Breed[] = [
     description:
       'One of the oldest surviving horse breeds, the Akhal-Teke was bred by Turkmen tribes across harsh desert conditions for speed and endurance. Its fine coat has a distinctive metallic sheen, giving rise to its nickname "the golden horse."',
     uses: ['Endurance', 'Racing', 'Show jumping'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Akhal-Teke-Racing.JPG',
+      credit: 'Wikimedia Commons (verify author on file page)',
+      license: 'CC BY-SA 4.0',
+    },
   },
   {
     id: 'clydesdale',
@@ -119,7 +140,11 @@ export const breeds: Breed[] = [
     description:
       'Developed in Lanarkshire (the historic Clydesdale) to haul coal and pull farm equipment, this breed is known for its feathered legs and high-stepping gait. Its size and calm disposition later made it a favorite for parade hitches and brewery teams.',
     uses: ['Driving', 'Parade hitches', 'Farm work'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Clydesdale_horse_by_Bonnie_Gruenberg.JPG',
+      credit: 'Bonnie Gruenberg / Wikimedia Commons',
+      license: 'CC BY-SA 3.0',
+    },
   },
   {
     id: 'shire',
@@ -132,9 +157,9 @@ export const breeds: Breed[] = [
       'Among the tallest horse breeds in the world, the Shire descends from England\'s medieval "great horses" bred to carry armored knights. It later became the backbone of English agriculture and city dray work before mechanization.',
     uses: ['Farm work', 'Driving', 'Forestry'],
     image: {
-      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Aa_shirehorse.jpg',
-      credit: 'Anthony Appleyard',
-      license: 'CC BY-SA 3.0',
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/The_Shire_Horse_Wyaston.jpg',
+      credit: 'Row17 / Wikimedia Commons',
+      license: 'CC BY-SA 2.0',
     },
   },
   {
@@ -149,7 +174,7 @@ export const breeds: Breed[] = [
     uses: ['Farm work', 'Driving', 'Logging'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Black_percheron_draft_horse.JPG',
-      credit: 'Cyborgsuzy',
+      credit: 'Cyborgsuzy / Wikimedia Commons',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -165,7 +190,7 @@ export const breeds: Breed[] = [
     uses: ['Driving', 'Trail riding', 'Family riding'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Gypsy_Vanner_Horse_black_and_white.JPG',
-      credit: '4028mdk09',
+      credit: '4028mdk09 / Wikimedia Commons',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -181,7 +206,7 @@ export const breeds: Breed[] = [
     uses: ['Tölt riding', 'Trail riding', 'Pace racing'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/IcelandicHorseInWinter.jpg',
-      credit: 'Ævar Arnfjörð Bjarmason',
+      credit: 'Andreas Tille / Wikimedia Commons',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -195,9 +220,10 @@ export const breeds: Breed[] = [
     description:
       'One of the world\'s oldest and purest breeds, the Fjord is instantly recognizable by its dun coat and the two-toned mane traditionally trimmed to stand upright. Compact but powerful, it has served Norwegian farms as an all-purpose horse for centuries.',
     uses: ['Farm work', 'Driving', 'Trail riding'],
+    // ⚠ head shot, not full body — swap if you want a body shot
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fjordpferd_-_Kopf.jpg',
-      credit: 'BS Thurner Hof',
+      credit: 'Wikimedia Commons (verify author on file page)',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -213,7 +239,7 @@ export const breeds: Breed[] = [
     uses: ['Driving', 'Trail riding', 'Light farm work'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Haflinger_Horse.JPG',
-      credit: 'Maxmarsilius',
+      credit: 'Wikimedia Commons (verify author on file page)',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -227,7 +253,12 @@ export const breeds: Breed[] = [
     description:
       'Developed by Southern plantation owners who needed a comfortable mount for inspecting fields for hours at a time, the Tennessee Walking Horse performs a distinctive four-beat running walk. It remains one of the most popular gaited breeds in North America.',
     uses: ['Trail riding', 'Pleasure riding', 'Show'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    // ⚠ license inferred (Jackie O Photography) — verify on file page
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/ClassicChampagneTWH.jpg',
+      credit: 'Jackie O Photography / Wikimedia Commons',
+      license: 'CC BY 3.0',
+    },
   },
   {
     id: 'shetland',
@@ -241,7 +272,7 @@ export const breeds: Breed[] = [
     uses: ['Children\'s riding', 'Driving'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Shetland_pony_(3).jpg',
-      credit: 'Ronnie Robertson',
+      credit: 'Ronnie Robertson / Wikimedia Commons',
       license: 'CC BY-SA 2.0',
     },
   },
@@ -257,7 +288,7 @@ export const breeds: Breed[] = [
     uses: ['Driving', 'Show', 'Children\'s riding'],
     image: {
       url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Welsh_Pony_Silver.JPG',
-      credit: '4028mdk09',
+      credit: '4028mdk09 / Wikimedia Commons',
       license: 'CC BY-SA 3.0',
     },
   },
@@ -271,10 +302,11 @@ export const breeds: Breed[] = [
     description:
       'Descended from horses brought by Spanish colonists and later escaped or released ranch stock, Mustangs have run free across the American West for centuries. Today, federally protected herds are managed by the Bureau of Land Management, with excess animals offered for adoption.',
     uses: ['Trail riding (once gentled)', 'Ranch work (once gentled)'],
+    // ⚠ license unconfirmed — verify on file page
     image: {
-      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Kiger_Mustangs.jpg',
-      credit: 'Cabachaloca',
-      license: 'CC BY-SA 4.0',
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mustangs.jpg',
+      credit: 'Wikimedia Commons (verify author + license)',
+      license: 'CC BY-SA 3.0',
     },
   },
   {
@@ -287,6 +319,11 @@ export const breeds: Breed[] = [
     description:
       'Living wild on Assateague Island off Virginia and Maryland, this pony breed was popularized by Marguerite Henry\'s novel "Misty of Chincoteague." The Chincoteague herd is famous for its annual "Pony Swim," when volunteer firefighters guide the ponies across the channel to Chincoteague for auction.',
     uses: ['Children\'s riding (once gentled)', 'Driving'],
-    image: { url: '', credit: 'Needs image', license: 'N/A' },
+    // ⚠ license unconfirmed — verify on file page
+    image: {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Wild_Pony_at_Assateague.jpg',
+      credit: 'Wikimedia Commons (verify author + license)',
+      license: 'CC BY-SA 4.0',
+    },
   },
 ]
