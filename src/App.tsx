@@ -8,7 +8,7 @@ import { LivePage } from './components/LivePage'
 import { StablePage } from './stable/StablePage'
 import { parseHash, type View } from './lib/route'
 
-const VIEW_HREF: Record<View, string> = { breeds: '#/', live: '#/live', stable: '#/stable' }
+const VIEW_HREF: Record<View, string> = { breeds: '#/breeds', live: '#/live', stable: '#/' }
 
 function NavLink({ view, current, onNavigate, children }: {
   view: View
@@ -64,14 +64,14 @@ function App() {
             </p>
           </div>
           <nav className="flex gap-1">
+            <NavLink view="stable" current={view} onNavigate={setView}>
+              Stable
+            </NavLink>
             <NavLink view="breeds" current={view} onNavigate={setView}>
               Breeds
             </NavLink>
             <NavLink view="live" current={view} onNavigate={setView}>
               Live
-            </NavLink>
-            <NavLink view="stable" current={view} onNavigate={setView}>
-              Stable
             </NavLink>
           </nav>
         </div>

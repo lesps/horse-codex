@@ -2,7 +2,10 @@
 
 ## 0.3.0
 
-- Added pixel stable view (`#/stable`): an animated pixel-art paddock where
+- The stable is now the app's default view: `#/` (and any unrecognized
+  hash) opens the paddock, and the breed catalogue moved to `#/breeds`.
+  Old `#/stable` links still land on the stable.
+- Added pixel stable view: an animated pixel-art paddock where
   all 20 breeds wander, graze, and idle, each with a recognizable
   palette-swapped coat (Friesian solid black, Akhal-Teke gold, Appaloosa
   spots, Clydesdale white feathering, piebald Gypsy Vanner, …) and sized by

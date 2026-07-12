@@ -2,6 +2,13 @@ import { act, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from './App'
 
+function setHash(hash: string) {
+  act(() => {
+    window.location.hash = hash
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+  })
+}
+
 describe('App navigation', () => {
   beforeEach(() => {
     window.location.hash = ''
@@ -11,24 +18,21 @@ describe('App navigation', () => {
     window.location.hash = ''
   })
 
-  it('shows the breed grid by default, switches to Live on hashchange, and back again', () => {
+  it('shows the stable by default and switches views on hashchange', () => {
     render(<App />)
 
     expect(screen.getByText('🐴 Horse Breeds Explorer')).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Live', level: 2 })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Stable', level: 2 })).toBeInTheDocument()
 
-    act(() => {
-      window.location.hash = '#/live'
-      window.dispatchEvent(new HashChangeEvent('hashchange'))
-    })
-
+    setHash('#/live')
     expect(screen.getByRole('heading', { name: 'Live', level: 2 })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Stable', level: 2 })).not.toBeInTheDocument()
 
-    act(() => {
-      window.location.hash = '#/'
-      window.dispatchEvent(new HashChangeEvent('hashchange'))
-    })
-
+    setHash('#/breeds')
     expect(screen.queryByRole('heading', { name: 'Live', level: 2 })).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument()
+
+    setHash('#/')
+    expect(screen.getByRole('heading', { name: 'Stable', level: 2 })).toBeInTheDocument()
   })
 })
