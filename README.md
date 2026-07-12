@@ -7,6 +7,11 @@ Stable view — the default tab — where every breed wanders a paddock at its
 real relative size; click a horse to open its breed detail. The breed
 catalogue lives at `#/breeds`.
 
+The stable doubles as a toy box: clicking around the paddock turns up
+random discoveries — hats and saddles to dress horses in, decorations to
+personalize the paddock, and hay bales, carrots, and other treats the herd
+will wander over and eat. Finds persist in your browser's localStorage.
+
 100% client-side: no server, no database, no secret keys. Deployed as static
 files on GitHub Pages.
 
@@ -69,6 +74,15 @@ one, append an object matching the `LiveCam` interface:
   test in `src/data/cams.test.ts` enforces the match.
 - Run `pnpm test` after editing — it checks unique kebab-case ids, non-empty
   label/description, an `https://` url, and (if present) a valid `breedId`.
+
+## How to add a toy
+
+Toy box items (hats, saddles, decorations, treats) live in
+`src/stable/items.ts` as ASCII pixel art with a per-item color map and an
+anchor pixel — see the comments there for anchor semantics per kind. New
+items are discoverable automatically; treats need a `feedSeconds`. Run
+`pnpm test` after: `src/stable/items.test.ts` validates the art, colors,
+and anchors.
 
 ## How to tweak a coat
 

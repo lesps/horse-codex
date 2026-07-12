@@ -1,1 +1,58 @@
 @import 'tailwindcss';
+
+/* Toy discovery celebration (src/stable/DiscoveryCard.tsx). */
+@keyframes toy-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes toy-sparkle {
+  0%,
+  100% {
+    transform: scale(0.4) rotate(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15) rotate(12deg);
+    opacity: 1;
+  }
+}
+
+@keyframes toy-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.toy-pop {
+  animation: toy-pop 0.35s ease-out;
+}
+
+.toy-sparkle {
+  animation: toy-sparkle 1.4s ease-in-out infinite;
+}
+
+.toy-bounce {
+  animation: toy-bounce 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toy-pop,
+  .toy-sparkle,
+  .toy-bounce {
+    animation: none;
+  }
+}

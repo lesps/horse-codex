@@ -1,6 +1,8 @@
 import { coats, type Coat } from './coats'
-import { mulberry32, type HorseAgent } from './sim'
-import { sprites, type Grid, type SpriteSheet } from './sprites'
+import { artSize, itemById, type ToyItem } from './items'
+import { mulberry32, type HorseAgent, type Treat } from './sim'
+import { attachPoints, sprites, type Grid, type SpriteSheet } from './sprites'
+import type { PlacedDecoration, ToyBoxState } from './toybox'
 
 // Canvas-facing helpers for the stable view. Everything here degrades
 // gracefully when a 2D context is unavailable (jsdom in tests).
@@ -202,12 +204,98 @@ export function buildBackground(): HTMLCanvasElement | null {
   return canvas
 }
 
-/** Draws one full scene frame: backdrop, then agents y-sorted with shadows. */
+/**
+ * Draws an item's pixel art with its anchor pixel landing on (x, y),
+ * at `scale` logical pixels per art pixel.
+ */
+export function drawPixelArt(
+  ctx: CanvasRenderingContext2D,
+  item: ToyItem,
+  x: number,
+  y: number,
+  scale: number,
+): void {
+  const ox = x - item.anchor.x * scale
+  const oy = y - item.anchor.y * scale
+  for (let row = 0; row < item.rows.length; row++) {
+    const line = item.rows[row]
+    for (let col = 0; col < line.length; col++) {
+      const color = item.colors[line[col]]
+      if (!color) continue
+      ctx.fillStyle = color
+      ctx.fillRect(ox + col * scale, oy + row * scale, scale, scale)
+    }
+  }
+}
+
+/** Bounding rect of a placed decoration (anchor is bottom-center), for removal hit-testing. */
+export function decorationRect(deco: PlacedDecoration): {
+  x: number
+  y: number
+  w: number
+  h: number
+} | null {
+  const item = itemById.get(deco.itemId)
+  if (!item) return null
+  const { w, h } = artSize(item)
+  return { x: deco.x - item.anchor.x, y: deco.y - item.anchor.y, w, h }
+}
+
+/** Topmost placed decoration under the point, or null. */
+export function decorationAt(
+  decorations: PlacedDecoration[],
+  x: number,
+  y: number,
+): PlacedDecoration | null {
+  for (let i = decorations.length - 1; i >= 0; i--) {
+    const rect = decorationRect(decorations[i])
+    if (!rect) continue
+    if (x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h) {
+      return decorations[i]
+    }
+  }
+  return null
+}
+
+function drawAccessory(
+  ctx: CanvasRenderingContext2D,
+  itemId: string | undefined,
+  agent: HorseAgent,
+  spriteX: number,
+  spriteY: number,
+): void {
+  if (!itemId) return
+  const item = itemById.get(itemId)
+  if (!item) return
+  const points = attachPoints[coats[agent.breedId].sprite]
+  const attach =
+    item.kind === 'saddle'
+      ? points.saddle
+      : agent.state === 'graze'
+        ? points.hatDown
+        : points.hatUp
+  drawPixelArt(
+    ctx,
+    item,
+    spriteX + attach.x * agent.scale + agent.scale / 2,
+    spriteY + attach.y * agent.scale,
+    agent.scale,
+  )
+}
+
+export interface Scene {
+  agents: HorseAgent[]
+  treats: Treat[]
+  decorations: PlacedDecoration[]
+  equipped: ToyBoxState['equipped']
+}
+
+/** Draws one full scene frame: backdrop, then decorations/treats/agents y-sorted. */
 export function drawScene(
   ctx: CanvasRenderingContext2D,
   background: HTMLCanvasElement | null,
   coatFrames: Map<string, CoatFrames>,
-  agents: HorseAgent[],
+  scene: Scene,
 ): void {
   ctx.imageSmoothingEnabled = false
   if (background) {
@@ -217,26 +305,63 @@ export function drawScene(
     ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H)
   }
 
-  const sorted = [...agents].sort((a, b) => a.y - b.y)
-  for (const agent of sorted) {
+  type Drawable = { y: number; draw: () => void }
+  const drawables: Drawable[] = []
+
+  for (const deco of scene.decorations) {
+    const item = itemById.get(deco.itemId)
+    if (!item) continue
+    drawables.push({ y: deco.y, draw: () => drawPixelArt(ctx, item, deco.x, deco.y, 1) })
+  }
+
+  for (const treat of scene.treats) {
+    const item = itemById.get(treat.itemId)
+    if (!item) continue
+    // Treats shrink as they're eaten.
+    const scale = 0.55 + 0.45 * Math.max(0, Math.min(1, treat.bites / treat.maxBites))
+    drawables.push({ y: treat.y, draw: () => drawPixelArt(ctx, item, treat.x, treat.y, scale) })
+  }
+
+  for (const agent of scene.agents) {
     const coat = coatFrames.get(agent.breedId)
     if (!coat) continue
-    const rect = agentRect(agent)
+    drawables.push({
+      y: agent.y,
+      draw: () => {
+        const rect = agentRect(agent)
+        const worn = scene.equipped[agent.breedId]
 
-    ctx.fillStyle = 'rgba(30, 50, 20, 0.18)'
-    ctx.beginPath()
-    ctx.ellipse(agent.x, agent.y - 0.5, rect.w * 0.32, Math.max(1.5, rect.h * 0.08), 0, 0, Math.PI * 2)
-    ctx.fill()
+        ctx.fillStyle = 'rgba(30, 50, 20, 0.18)'
+        ctx.beginPath()
+        ctx.ellipse(
+          agent.x,
+          agent.y - 0.5,
+          rect.w * 0.32,
+          Math.max(1.5, rect.h * 0.08),
+          0,
+          0,
+          Math.PI * 2,
+        )
+        ctx.fill()
 
-    const frame = coat.frames[frameIndexFor(agent)]
-    if (agent.facing === -1) {
-      ctx.save()
-      ctx.translate(agent.x, 0)
-      ctx.scale(-1, 1)
-      ctx.drawImage(frame, -rect.w / 2, rect.y, rect.w, rect.h)
-      ctx.restore()
-    } else {
-      ctx.drawImage(frame, rect.x, rect.y, rect.w, rect.h)
-    }
+        const frame = coat.frames[frameIndexFor(agent)]
+        if (agent.facing === -1) {
+          ctx.save()
+          ctx.translate(agent.x, 0)
+          ctx.scale(-1, 1)
+          ctx.drawImage(frame, -rect.w / 2, rect.y, rect.w, rect.h)
+          drawAccessory(ctx, worn?.saddle, agent, -rect.w / 2, rect.y)
+          drawAccessory(ctx, worn?.hat, agent, -rect.w / 2, rect.y)
+          ctx.restore()
+        } else {
+          ctx.drawImage(frame, rect.x, rect.y, rect.w, rect.h)
+          drawAccessory(ctx, worn?.saddle, agent, rect.x, rect.y)
+          drawAccessory(ctx, worn?.hat, agent, rect.x, rect.y)
+        }
+      },
+    })
   }
+
+  drawables.sort((a, b) => a.y - b.y)
+  for (const drawable of drawables) drawable.draw()
 }

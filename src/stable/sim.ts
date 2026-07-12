@@ -31,7 +31,29 @@ export interface HorseAgent {
   target?: { x: number; y: number }
   frame: number
   scale: number
+  /** Treat this agent is heading to or munching on. */
+  treatId?: string
 }
+
+/** A dropped treat: horses within range walk over and munch until it's gone. */
+export interface Treat {
+  id: string
+  itemId: string
+  x: number
+  y: number
+  /** Seconds of munching left (shared between eaters). */
+  bites: number
+  maxBites: number
+}
+
+export interface World {
+  agents: HorseAgent[]
+  treats: Treat[]
+}
+
+/** How close (logical px) a treat has to be to tempt a horse. */
+export const TREAT_ATTRACT_RADIUS = 90
+export const MAX_TREATS = 6
 
 /** Deterministic PRNG for tests, spawn seeds, and procedural coat spots. */
 export function mulberry32(seed: number): () => number {
@@ -111,14 +133,57 @@ export function spawn(breeds: Breed[], bounds: Bounds, rng: () => number): Horse
   })
 }
 
-export function tick(
-  agents: HorseAgent[],
-  dt: number,
-  bounds: Bounds,
-  rng: () => number,
-): HorseAgent[] {
-  return agents.map((prev) => {
+function headToTreat(agent: HorseAgent, treat: Treat, bounds: Bounds): void {
+  // Approach point sits just short of the treat, on the agent's side —
+  // deterministic, no rng, so multiple eaters fan out by arrival direction.
+  const dx = agent.x - treat.x
+  const dy = agent.y - treat.y
+  const len = Math.hypot(dx, dy) || 1
+  const stand = 5 + 3 * agent.scale
+  const bottom = bounds.bottomInset ?? bounds.inset
+  agent.treatId = treat.id
+  agent.state = 'walk'
+  agent.stateT = 0
+  agent.stateDur = 0
+  agent.frame = 0
+  agent.target = {
+    x: Math.min(
+      bounds.width - bounds.inset,
+      Math.max(bounds.inset, treat.x + (dx / len) * stand),
+    ),
+    y: Math.min(
+      bounds.height - bottom,
+      Math.max(bounds.top, treat.y + (dy / len) * Math.max(2, stand * 0.5)),
+    ),
+  }
+  if (Math.abs(agent.target.x - agent.x) > 1) {
+    agent.facing = agent.target.x > agent.x ? 1 : -1
+  }
+}
+
+export function tickWorld(world: World, dt: number, bounds: Bounds, rng: () => number): World {
+  const treats = world.treats.map((t) => ({ ...t }))
+  const treatById = new Map(treats.map((t) => [t.id, t]))
+
+  const agents = world.agents.map((prev) => {
     const agent: HorseAgent = { ...prev, stateT: prev.stateT + dt }
+
+    if (agent.treatId && !treatById.has(agent.treatId)) {
+      agent.treatId = undefined
+    }
+
+    if (!agent.treatId && agent.state !== 'graze' && treats.length > 0) {
+      let best: Treat | undefined
+      let bestDist = TREAT_ATTRACT_RADIUS
+      for (const treat of treats) {
+        const d = Math.hypot(treat.x - agent.x, treat.y - agent.y)
+        if (d < bestDist) {
+          bestDist = d
+          best = treat
+        }
+      }
+      if (best) headToTreat(agent, best, bounds)
+    }
 
     if (agent.state === 'walk' && agent.target) {
       const dx = agent.target.x - agent.x
@@ -128,13 +193,24 @@ export function tick(
       if (dist <= Math.max(step, 0.75)) {
         agent.x = agent.target.x
         agent.y = agent.target.y
-        startRest(agent, rng)
+        if (agent.treatId) {
+          // Head down and munch; stateDur is topped up below while food lasts.
+          agent.state = 'graze'
+          agent.stateT = 0
+          agent.stateDur = 0.6
+          agent.target = undefined
+          agent.frame = 0
+        } else {
+          startRest(agent, rng)
+        }
       } else {
         agent.x += (dx / dist) * step
         agent.y += (dy / dist) * step
         if (Math.abs(dx) > 0.5) agent.facing = dx > 0 ? 1 : -1
         agent.frame = Math.floor(agent.stateT / walkFrameDuration(agent.scale)) % 4
       }
+    } else if (agent.state === 'graze' && agent.treatId) {
+      agent.stateDur = agent.stateT + 0.6
     } else if (agent.stateT >= agent.stateDur) {
       startWalk(agent, bounds, rng)
     }
@@ -142,4 +218,20 @@ export function tick(
     clampToBounds(agent, bounds)
     return agent
   })
+
+  for (const treat of treats) {
+    const eaters = agents.filter((a) => a.treatId === treat.id && a.state === 'graze').length
+    treat.bites -= eaters * dt
+  }
+
+  return { agents, treats: treats.filter((t) => t.bites > 0) }
+}
+
+export function tick(
+  agents: HorseAgent[],
+  dt: number,
+  bounds: Bounds,
+  rng: () => number,
+): HorseAgent[] {
+  return tickWorld({ agents, treats: [] }, dt, bounds, rng).agents
 }

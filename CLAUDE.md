@@ -121,6 +121,45 @@ scaled up with `image-rendering: pixelated`, nearest-neighbor only).
 - The view skips simulation under `prefers-reduced-motion` (static herd,
   still clickable) and stops advancing while the tab is hidden.
 
+## Toy box: discoverable hats, saddles, decorations, and treats
+
+The stable has a light collection layer (`src/stable/toybox.ts`,
+`src/stable/items.ts`): 20 toys that turn up at random while the user
+clicks around the paddock, shown off with a celebration overlay
+(`DiscoveryCard.tsx`) and collected in a panel under the canvas
+(`ToyBox.tsx`).
+
+- **Items are data, like everything else.** Each toy in `items.ts` is ASCII
+  rows plus its own char→hex color map (unlike breed sprites there's no
+  shared palette to swap, so each item owns its colors) and an `anchor`
+  pixel: hats anchor bottom-center on the head, saddles top-center on the
+  back (lower rows drape over the barrel), decorations/treats bottom-center
+  on the ground. Accessory attach points per base silhouette live in
+  `sprites.ts#attachPoints`, with separate head-up and head-down (graze)
+  hat positions so hats follow a lowered head.
+- **Discovery is seeded fun, not an economy.** A roll happens on opening
+  the stable (`OPEN_FIND_CHANCE`) and on paddock clicks that don't hit a
+  horse (`CLICK_FIND_CHANCE`), with a pity counter guaranteeing a find
+  every `PITY_LIMIT` misses. The first find is always the hay bale so the
+  feeding mechanic unlocks legibly. Once found, an item is infinitely
+  reusable — any number of horses can wear the same hat.
+- **Modes, not extra chrome:** with nothing selected, clicking a horse
+  opens its breed detail (unchanged). Selecting a toy retargets the next
+  paddock click — equip/unequip on a horse (one hat slot + one saddle slot
+  per breed), place/pick-up a decoration (capped at `MAX_DECORATIONS`), or
+  drop a treat. Escape deselects.
+- **Treats live in the pure sim** (`sim.ts#tickWorld`): a dropped treat
+  attracts horses within `TREAT_ATTRACT_RADIUS`, they walk over and reuse
+  the graze pose to munch, and `bites` deplete per eater-second until the
+  treat despawns (shrinking as it goes). Treats are deliberately ephemeral
+  — not persisted.
+- **Persistence is localStorage only** (`TOYBOX_STORAGE_KEY`), sanitized on
+  load so removed/renamed item ids degrade gracefully. This is not an
+  account system — the non-goals below still hold; if the key is cleared
+  the toys are simply re-discoverable.
+- Decorations and treats join the same y-sorted draw list as horses, so a
+  horse walks in front of or behind a tree correctly.
+
 ## Images
 
 Breed photos are referenced by Wikimedia Commons filename, turned into a URL
