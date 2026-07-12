@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Breed } from '../data/types'
+import { ConfirmDialog } from './ConfirmDialog'
 import { DiscoveryCard } from './DiscoveryCard'
 import { itemById, type ToyItem } from './items'
 import {
@@ -101,6 +102,7 @@ export function StablePage({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [discovery, setDiscovery] = useState<ToyItem | null>(null)
   const [hover, setHover] = useState<{ name: string; x: number; y: number } | null>(null)
+  const [confirmingPutAway, setConfirmingPutAway] = useState(false)
   const breedById = useRef(new Map(breeds.map((b) => [b.id, b])))
   // RAF-visible mirror of the persisted toy box (equipped + decorations).
   const sceneStateRef = useRef(toybox)
@@ -288,6 +290,7 @@ export function StablePage({
     setToybox((state) => putAwayAll(state))
     worldRef.current = { ...worldRef.current, treats: [] }
     setSelectedId(null)
+    setConfirmingPutAway(false)
   }
 
   function newHerd() {
@@ -351,7 +354,23 @@ export function StablePage({
         {selectionHint(selectedItem, selectedId === TIDY_TOOL)}
       </p>
 
-      <ToyBox state={toybox} selectedId={selectedId} onSelect={setSelectedId} onPutAway={putAway} />
+      <ToyBox
+        state={toybox}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onPutAway={() => setConfirmingPutAway(true)}
+      />
+
+      {confirmingPutAway && (
+        <ConfirmDialog
+          title="Put everything away?"
+          body="Every horse gets undressed and all decorations and treats are cleared. Your discovered toys stay in the toy box."
+          confirmLabel="Put it all away"
+          cancelLabel="Keep playing"
+          onConfirm={putAway}
+          onCancel={() => setConfirmingPutAway(false)}
+        />
+      )}
     </div>
   )
 }
